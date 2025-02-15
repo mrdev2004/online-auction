@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Table, Form, InputGroup, FormControl, Modal, Pagination } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Style from './Style';
+import Style from "../CommonComponents/Style";
 import { toast, ToastContainer } from 'react-toastify';
 
+// Admin Auctions Component
 const AdminAuctions = () => {
     const [auctions, setAuctions] = useState([]);
     const [auctionToEdit, setAuctionToEdit] = useState(null);
@@ -17,7 +18,7 @@ const AdminAuctions = () => {
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(5); // You can change the number of items per page
+    const [itemsPerPage] = useState(5);
 
     useEffect(() => {
         fetchAuctions();
@@ -40,7 +41,7 @@ const AdminAuctions = () => {
         setUpdatePrice(auction.price);
         setUpdateStartTime(auction.start_time);
         setUpdateEndTime(auction.end_time);
-        setShowModal(true); // Show modal on Edit click
+        setShowModal(true);
     };
 
     const handleUpdateAuction = async () => {
@@ -55,13 +56,13 @@ const AdminAuctions = () => {
         try {
             const response = await fetch('http://localhost/demo/tmp1.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
             const result = await response.json();
             if (result.status === 'success') {
-                toast.success("Updated Successfully");
+                toast.success('Updated Successfully');
                 fetchAuctions();
-                setShowModal(false); // Close modal after successful update
+                setShowModal(false);
             } else {
                 alert('Error updating auction');
             }
@@ -81,89 +82,111 @@ const AdminAuctions = () => {
 
         const result = await response.json();
         if (result.status === 'success') {
-            toast.success("Deleted Successfully");
+            toast.success('Deleted Successfully');
             fetchAuctions();
         } else {
             alert('Error deleting auction');
         }
     };
 
-    // Pagination logic
     const filteredAuctions = auctions.filter((auction) =>
         auction.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Calculate total pages
     const totalPages = Math.ceil(filteredAuctions.length / itemsPerPage);
 
-    // Get current auctions for the current page
     const currentAuctions = filteredAuctions.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
-    // Handle page change
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
 
-    // Calculate the total price and total number of products (auctions)
-    const totalPrice = auctions.reduce((total, auction) => total + parseFloat(auction.price), 0);
+    const totalPrice = auctions.reduce(
+        (total, auction) => total + parseFloat(auction.price),
+        0
+    );
     const totalAuctions = auctions.length;
 
     return (
-        <div className="container my-4" style={{ scrollBehavior: "smooth" }}>
+        <div className="container mt-5" style={{ scrollBehavior: 'smooth' }}>
             <Style />
             <ToastContainer />
-            <h2 className="mb-4">Admin Auctions</h2>
+            <h2 className="mb-4" >Auctions</h2>
 
-            {/* Colorful div displaying total price and total auctions */}
-            <div style={{ backgroundColor: '#f8d7da', padding: '10px', borderRadius: '5px', marginBottom: '20px' }}>
-                <h4 style={{ color: '#721c24' }}>
-                    Total Price of All Shoes : <strong>Rs.{totalPrice.toFixed(2)}</strong> | Total Auctions: <strong>{totalAuctions}</strong>
-                </h4>
+            {/* Stats Card */}
+            <div style={styles.statsContainer}>
+                <div style={{ ...styles.statsCard, backgroundColor: '#4e73df' }}>
+                    <h5 style={styles.statsTitle}>Total Price</h5>
+                    <p style={styles.statsValue}>Rs. {totalPrice.toFixed(2)}</p>
+                </div>
+                <div style={{ ...styles.statsCard, backgroundColor: '#1cc88a' }}>
+                    <h5 style={styles.statsTitle}>Total Auctions</h5>
+                    <p style={styles.statsValue}>{totalAuctions}</p>
+                </div>
             </div>
 
-            <InputGroup className="mb-4">
+            {/* Search Bar */}
+            <InputGroup className="mb-4" style={styles.searchBar}>
                 <FormControl
                     placeholder="Search by title..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    style={styles.searchInput}
                 />
             </InputGroup>
 
-            <Table striped bordered hover variant="dark">
+            {/* Auctions Table */}
+            <Table style={styles.table}>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Price</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Image</th>
-                        <th>Actions</th>
+                        <th style={styles.tableHeader}>ID</th>
+                        <th style={styles.tableHeader}>Title</th>
+                        <th style={styles.tableHeader}>Description</th>
+                        <th style={styles.tableHeader}>Price</th>
+                        <th style={styles.tableHeader}>Start Time</th>
+                        <th style={styles.tableHeader}>End Time</th>
+                        <th style={styles.tableHeader}>Image</th>
+                        <th style={styles.tableHeader}>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {currentAuctions.map((auction) => (
-                        <tr key={auction.id}>
-                            <td>{auction.id}</td>
-                            <td>{auction.title}</td>
-                            <td>{auction.description}</td>
-                            <td>{auction.price}</td>
-                            <td>{auction.start_time}</td>
-                            <td>{auction.end_time}</td>
-                            <td>
+                        <tr key={auction.id} style={styles.tableRow}>
+                            <td style={styles.tableCell}>{auction.id}</td>
+                            <td style={styles.tableCell}>{auction.title}</td>
+                            <td style={styles.tableCell}>{auction.description}</td>
+                            <td style={styles.tableCell}>{auction.price}</td>
+                            <td style={styles.tableCell}>{auction.start_time}</td>
+                            <td style={styles.tableCell}>{auction.end_time}</td>
+                            <td style={styles.tableCell}>
                                 {auction.image_path ? (
-                                    <img src={`http://localhost/demo/${auction.image_path}`} alt="Auction" width="100" />
+                                    <img
+                                        src={`http://localhost/demo/${auction.image_path}`}
+                                        alt="Auction"
+                                        width="100"
+                                    />
                                 ) : (
                                     'No Image'
                                 )}
                             </td>
-                            <td style={{ width: "200px" }}>
-                                <Button variant="warning" onClick={() => handleEdit(auction)}>Edit</Button>
-                                <Button variant="danger" onClick={() => handleDelete(auction.id)} className="ms-2">Delete</Button>
+                            <td style={{ display: "flex" }}>
+                                <Button
+                                    variant="warning"
+                                    onClick={() => handleEdit(auction)}
+                                    style={styles.editButton}
+                                >
+                                    Edit
+                                </Button>
+                                <Button
+                                    variant="danger"
+                                    onClick={() => handleDelete(auction.id)}
+                                    style={styles.deleteButton}
+                                >
+                                    Delete
+                                </Button>
                             </td>
                         </tr>
                     ))}
@@ -171,7 +194,6 @@ const AdminAuctions = () => {
             </Table>
 
             {/* Pagination */}
-            { }
             <Pagination>
                 {Array.from({ length: totalPages }).map((_, index) => (
                     <Pagination.Item
@@ -244,6 +266,68 @@ const AdminAuctions = () => {
             </Modal>
         </div>
     );
+};
+
+// Inline CSS Styles
+const styles = {
+    statsContainer: {
+        display: 'flex',
+        gap: '20px',
+        marginBottom: '30px',
+    },
+    statsCard: {
+        flex: '1',
+        padding: '20px',
+        borderRadius: '10px',
+        boxShadow: '0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15)',
+        textAlign: 'center',
+        color: '#fff',
+    },
+    statsTitle: {
+        fontSize: '16px',
+        fontWeight: '600',
+        marginBottom: '10px',
+    },
+    statsValue: {
+        fontSize: '24px',
+        fontWeight: '700',
+    },
+    searchBar: {
+        marginBottom: '30px',
+    },
+    searchInput: {
+        padding: '10px',
+        borderRadius: '5px',
+        border: '1px solid #ddd',
+        fontSize: '16px',
+    },
+    table: {
+        backgroundColor: '#fff',
+        borderRadius: '10px',
+        boxShadow: '0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15)',
+    },
+    tableHeader: {
+        padding: '15px',
+        textAlign: 'left',
+        color: '#fff',
+        backgroundColor: '#4e73df',
+        fontWeight: '600',
+        width: "300px"
+    },
+    tableRow: {
+        borderBottom: '1px solid #e3e6f0',
+    },
+    tableCell: {
+        padding: '15px',
+        color: '#5a5c69',
+
+    },
+    editButton: {
+        marginRight: '10px',
+    },
+    deleteButton: {
+        marginLeft: '10px',
+    },
 };
 
 export default AdminAuctions;

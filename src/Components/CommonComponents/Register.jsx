@@ -39,12 +39,15 @@ const Register = () => {
         const { name, email, password, contact, terms } = formData;
 
         if (!name.trim()) return 'Full Name is required.';
+        if (!/^[A-Za-z\s]+$/.test(name)) return 'Full Name must contain only letters.';
         if (!email.match(/^\S+@\S+\.\S+$/)) return 'Invalid email address.';
         if (password.length < 6) return 'Password must be at least 6 characters.';
         if (!contact.match(/^\d{10}$/)) return 'Contact number must be 10 digits.';
         if (!terms) return 'You must agree to the terms and conditions.';
+
         return null;
     };
+
 
     // Handle form submission
     const handleSubmit = async (e) => {
@@ -72,14 +75,14 @@ const Register = () => {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            
+
             if (response.data.success) {
                 toast.success('Registration successful!');
                 setTimeout(() => {
                     navigate("/Login");
-                 
-            
-                   }, [1000]); 
+
+
+                }, [1000]);
             } else {
                 toast.error(response.data.message);
             }
@@ -91,8 +94,8 @@ const Register = () => {
     return (
         <>
             <section className="login_box_area section_gap">
-                <Style/>
-                <ToastContainer/>
+                <Style />
+                <ToastContainer />
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-6">

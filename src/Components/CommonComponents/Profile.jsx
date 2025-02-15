@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Style from './Style';
+import Style from "../CommonComponents/Style";
 
 const Profile = () => {
     const [user, setUser] = useState(null);
@@ -85,7 +85,7 @@ terms
                                         borderRadius: "8px",
                                         border: "1px solid #ccc",
                                         marginBottom: "10px",
-                                        width: "23.3vw"
+                                        width: "21.3vw"
                                     }}
                                 />
                             </div>

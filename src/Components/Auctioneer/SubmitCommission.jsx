@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import Style from './Style';
+import Style from "../CommonComponents/Style";
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure bootstrap is included
 
-const Commission = () => {
+const SubmitCommission = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]); // New state for filtered users
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,6 +76,7 @@ const Commission = () => {
     setShowModal(true);
   };
 
+
   // Handle update user
   const handleUpdate = async () => {
     if (currentUser) {
@@ -110,67 +111,66 @@ const Commission = () => {
   };
 
   return (
-    <div className="container mt-5">
+    <div
+      className="container mt-5"
+      style={{
+        maxWidth: '900px',
+        backgroundColor: '#f0f4f8',
+        borderRadius: '10px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+        padding: '20px',
+      }}
+    >
       <Style />
-      <h5 className="mt-5">Search Bar</h5>
+      <h5 className="mt-5" style={{ color: '#2c3e50' }}>Search Bar</h5>
       <form onSubmit={(e) => e.preventDefault()} className="mb-4 mt-5">
         <input
           type="text"
           className="form-control"
           placeholder="Search by auction, commission, or date..."
-          value={searchQuery}
-          onChange={handleSearchChange} // Handle search change
+          onChange={handleSearchChange}
+          style={{
+            border: '1px solid #ced4da',
+            padding: '10px',
+            borderRadius: '5px',
+          }}
         />
       </form>
 
-      {/* Users Table */}
-      <table className="table table-bordered table-dark">
-        <thead>
+      <table className="table table-bordered" style={{ backgroundColor: '#ffffff' }}>
+        <thead style={{ backgroundColor: '#2c3e50', color: '#ffffff' }}>
           <tr>
             <th>ID</th>
             <th>Auction</th>
             <th>Commission</th>
             <th>Date</th>
+            <th>Status</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (
-              <tr key={user.id}>
+              <tr key={user.id} style={{ backgroundColor: '#ecf0f1', color: '#34495e' }}>
                 <td>{user.id}</td>
                 <td>{user.auction}</td>
                 <td>{user.commission}</td>
                 <td>{user.date}</td>
+                <td>{user.status || 'Pending'}</td>
                 <td>
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="btn btn-danger btn-sm"
-                  >
-                    Delete
-                  </button>
+                  {/* Actions like Edit/Delete */}
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="5" className="text-center">
+              <td colSpan="6" className="text-center" style={{ backgroundColor: '#e74c3c', color: '#ffffff' }}>
                 No users found.
               </td>
             </tr>
           )}
         </tbody>
       </table>
-
-      {/* Pagination (commented out for now as it's not implemented here) */}
-      {/* <Pagination 
-        pageCount={totalPages} 
-        onPageChange={handlePageClick} 
-        pageRangeDisplayed={5} 
-        marginPagesDisplayed={2} 
-      /> */}
-
-      {/* Modal for Editing User */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Edit Commission</Modal.Title>
@@ -209,18 +209,29 @@ const Commission = () => {
               }
             />
           </div>
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              className="form-control"
+              value={currentUser?.status || 'Pending'}
+              onChange={(e) => handleStatusChange(e.target.value)}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Complete">Complete</option>
+            </select>
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModal}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleUpdate}>
+          <Button variant="primary" onClick={() => {/* Save changes logic */ }}>
             Save Changes
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </div >
   );
 };
 
-export default Commission;
+export default SubmitCommission;

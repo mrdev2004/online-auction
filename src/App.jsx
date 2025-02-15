@@ -1,39 +1,64 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './Components/Navbar';
-import Footer from './Components/Footer';
-import Index from './Components/Index';
-import Login from './Components/Login';
-import Contact from './Components/Contact';
-import Category from './Components/Category';
-import Register from './Components/Register';
-import Checkout from './Components/Checkout';
-import Confrim from './Components/Confrim';
-import SubmitCommission from './Components/SubmitCommission';
-import View from './Components/ViewAuction';
-import AddAuction from './Components/AddAuction';
-import Dashboard from './Components/Dashboard';
-import Commission from './Components/Commission';
-import ViewUsers from './Components/ViewUsers';
-import Vauctions from './Components/Vauctions';
-import AboutUs from './Components/AboutUs';
-import BidOnAuction from './Components/MyBids';
-import BidOnAuction1 from './Components/BidOnAuction1';
-// import SingleProducts from './Components/SingleProducts';
-// import Deval from './Components/Deval';
-import ShopData from './Components/ShopData';
-import AuctionsList from './Components/AuctionsList';
-import SingleData from './Components/SingleData';
-import MyBids from './Components/MyBids';
-import ViewAuctions from './Components/ViewAuction';
-import AdminAuctions from './Components/AdminAuctions';
-import Profile from './Components/Profile';
-// import NotFound from './Components/NotFound'; // Optional
+import Navbar from './Components/CommonComponents/Navbar';
+import VerticalNavbar from './Components/CommonComponents/VerticalNavbar'; // Import the VerticalNavbar
+import Footer from './Components/CommonComponents/Footer';
+import Index from './Components/CommonComponents/Index';
+import Login from './Components/CommonComponents/Login';
+import Contact from './Components/CommonComponents/Contact';
+import Category from './Components/CommonComponents/Category';
+import Register from './Components/CommonComponents/Register';
+import Checkout from './Components/Bidder/Checkout';
+import Confrim from './Components/Bidder/Confrim';
+import SubmitCommission from './Components/Auctioneer/SubmitCommission';
+import AddAuction from './Components/Auctioneer/AddAuction';
+import Dashboard from './Components/Admin/Dashboard';
+import Commission from './Components/Admin/Commission';
+import ViewUsers from './Components/Admin/ViewUsers';
+import Vauctions from './Components/Auctioneer/Vauctions';
+import AboutUs from './Components/CommonComponents/AboutUs';
+
+import ShopData from './Components/CommonComponents/ShopData';
+// import AuctionsList from './Components/AuctionsList';
+import SingleData from './Components/Bidder/SingleData';
+import MyBids from './Components/Bidder/MyBids';
+
+import AdminAuctions from './Components/Admin/AdminAuctions';
+import Profile from './Components/CommonComponents/Profile';
+import ViewAdmins from './Components/Admin/ViewAdmins';
+import AdminInsertPage from './Components/Admin/AdminInsertPage';
+import ViewPayments from './Components/Admin/ViewPayments';
 
 const App = () => {
+    // Assuming the user role is stored in localStorage or sessionStorage after login
+    const [userRole, setUserRole] = useState('');
+
+    useEffect(() => {
+        // You can replace this with your actual logic to retrieve the user role (e.g., from localStorage, API, or global state)
+        const role = localStorage.getItem('admin'); // Example of retrieving user role from localStorage
+        console.log("role", role)
+        setUserRole(role);
+    }, []);
+
+    // Conditionally render the navbar based on user role
+    const renderNavbar = () => {
+        if (userRole === 'Super Admin') {
+            return <VerticalNavbar />;
+        }
+        return <Navbar />;
+    };
+
+    // Conditionally render Footer based on user role
+    const renderFooter = () => {
+        if (userRole !== 'Super Admin') {
+            return <Footer />;
+        }
+        return null; // Don't render Footer if user is Super Admin
+    };
+
     return (
         <Router>
-            <Navbar />
+            {renderNavbar()} {/* Conditionally render Navbar */}
             <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/Login" element={<Login />} />
@@ -44,22 +69,25 @@ const App = () => {
                 <Route path="/Confirmation" element={<Confrim />} />
                 <Route path="/AboutUs" element={<AboutUs />} />
                 <Route path="/mybids" element={<MyBids />} />
-                {/* <Route path="/single-product" element={<SingleProducts />} />  */}
                 <Route path="/product" element={<SingleData />} />
-
-                {/* <Route path='/Deval' element={<Deval/>}/> */}
-
-                // auctionneer path
                 <Route path="/Aauction" element={<AddAuction />} />
                 <Route path="/Vauction" element={<Vauctions />} />
                 <Route path="/Commission" element={<SubmitCommission />} />
-                <Route path="/data" element={<AuctionsList />} />
+                {/* <Route path="/data" element={<AuctionsList />} /> */}
                 <Route path="/profile" element={<Profile />} />
 
+                {/* Admin routes */}
+                <Route path="/Dashboard" element={<Dashboard />} />
+                <Route path="/Adata" element={<AdminAuctions />} />
+                <Route path="/ViewUsers" element={<ViewUsers />} />
+                <Route path="/AdminCommission" element={<Commission />} />
+                <Route path="/ViewAdmins" element={<ViewAdmins />} />
+                <Route path="/AdminInsert" element={<AdminInsertPage />} />
+                <Route path="/ViewPayment" element={<ViewPayments />} />
 
 
             </Routes>
-            <Footer />
+            {renderFooter()} {/* Conditionally render Footer */}
         </Router>
     );
 };

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addAuction } from '../redux/Slices/auctionSlice';
+// import { addAuction } from '../redux/Slices/auctionSlice';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Style from './Style';
+import Style from "../CommonComponents/Style";
 
 const AddAuction = () => {
   const dispatch = useDispatch();
@@ -24,14 +24,25 @@ const AddAuction = () => {
   };
 
   const validateForm = () => {
+    const now = new Date();
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
     if (!title.trim()) return 'Title is required.';
     if (!description.trim()) return 'Description is required.';
     if (!price || price <= 0) return 'Price must be a positive number.';
     if (!startTime) return 'Start time is required.';
     if (!endTime) return 'End time is required.';
-    if (new Date(startTime) >= new Date(endTime)) {
-      return 'End time must be later than start time.';
+
+
+    if (start.getTime() === end.getTime()) {
+      return 'Start time and End time cannot be the same.';
     }
+
+    if (end <= start) {
+      return 'End time must be at least 1 minute after Start time.';
+    }
+
     return null;
   };
 
@@ -66,18 +77,7 @@ const AddAuction = () => {
       const result = await response.json();
 
       if (response.ok) {
-        dispatch(
-          addAuction({
-            title,
-            description,
-            price,
-            image: result.imagePath,
-            startTime,
-            endTime,
-          })
-        );
         toast.success('Auction added successfully!');
-        // Reset the form
         setTitle('');
         setDescription('');
         setPrice('');
@@ -133,7 +133,7 @@ const AddAuction = () => {
               placeholder="Enter starting price"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              min="0"
+              min="1"
             />
           </div>
 
@@ -155,6 +155,7 @@ const AddAuction = () => {
               id="startTime"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)} // Prevent past dates
             />
           </div>
 
@@ -166,6 +167,7 @@ const AddAuction = () => {
               id="endTime"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
+              min={startTime || new Date().toISOString().slice(0, 16)} // Prevent past dates
             />
           </div>
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import Style from './Style';
+import Style from "../CommonComponents/Style";
 
 const ViewAuctions = () => {
 

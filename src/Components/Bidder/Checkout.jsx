@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Style from './Style';
+import Style from "../CommonComponents/Style";
 
 const Checkout = () => {
     const [auctions, setAuctions] = useState([]);

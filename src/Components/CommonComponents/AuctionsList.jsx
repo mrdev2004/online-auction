@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Style from "./Style";
+import Style from "../CommonComponents/Style";
 
 const AuctionsList = () => {
   const [auctions, setAuctions] = useState([]);
@@ -11,7 +11,7 @@ const AuctionsList = () => {
       try {
         const response = await fetch("http://localhost/demo/getshopdata.php");
         const data = await response.json();
-console.log("asdd",data)
+        console.log("asdd", data)
         if (response.ok) {
           setAuctions(data.data);
         } else {
@@ -38,7 +38,7 @@ console.log("asdd",data)
   return (
     <div className="container mt-5">
       <Style />
-      <h2 className="mt-4"  style={{paddingTop:"20px"}}>Auctions List</h2>
+      <h2 className="mt-4" style={{ paddingTop: "20px" }}>Auctions List</h2>
       {auctions.length === 0 ? (
         <p>No auctions available at the moment.</p>
       ) : (
