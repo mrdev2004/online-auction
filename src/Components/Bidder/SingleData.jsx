@@ -10,6 +10,7 @@ const socket = new WebSocket("ws://localhost:5000/auction");
 const SingleData = () => {
   const location = useLocation();
   const { auction } = location.state || {};
+  console.log("auctionername==>", auction)
   const [bids, setBids] = useState([]);
   const [bidAmount, setBidAmount] = useState("");
   const [userName, setUserName] = useState("Guest User");
@@ -170,7 +171,7 @@ const SingleData = () => {
       image_path: auction.image_path,
       starting_price: auction.price,
       auction_end_time: auction.end_time,
-      auctioneer: highestBid.username,
+      auctioneer: auction.auctioneer_name,
       bid_amount: highestBid.amount,
       highest_bidder: highestBid.username
     };
@@ -187,7 +188,7 @@ const SingleData = () => {
       .then(data => {
         if (data.success) {
           console.log("Auction winner saved successfully.");
-          alert(`Auction ended! Winner: ${highestBid.username}, Amount: Rs.${highestBid.amount}`);
+          toast.success(`Auction ended! Winner: ${highestBid.username}, Amount: Rs.${highestBid.amount}`);
         } else {
           console.error("Error saving auction winner:", data.message);
         }
@@ -206,14 +207,14 @@ const SingleData = () => {
 
   const handleBidSubmit = () => {
     if (!bidAmount || isNaN(bidAmount) || bidAmount <= 0) {
-      alert("Please enter a valid bid amount.");
+      toast.error("Please enter a valid bid amount.");
       return;
     }
 
     const currentHighestBid = bids[0] ? bids[0].amount : parseFloat(auction.price);
 
     if (parseFloat(bidAmount) <= currentHighestBid) {
-      alert(`Your bid must be higher than the current highest bid of Rs.${currentHighestBid}.`);
+      toast.error(`Your bid must be higher than the current highest bid of Rs.${currentHighestBid}.`);
       return;
     }
 
@@ -234,62 +235,126 @@ const SingleData = () => {
   };
 
   return (
-    <div className="container pt-5 my-5 py-4 border rounded bg-dark text-white">
+    <div
+      className="container pt-5 my-5 py-4 border rounded"
+      style={{
+        backgroundColor: "#1a1a1a",
+        color: "#ffffff",
+        borderColor: "#333",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+      }}
+    >
       <Style />
-
       <ToastContainer /> {/* Include ToastContainer */}
 
       <div className="row pt-5">
+        {/* Left Column: Auction Details */}
         <div className="col-md-6">
-          <div className="card bg-dark border-light shadow-lg">
+          <div
+            className="card"
+            style={{
+              backgroundColor: "#2a2a2a",
+              border: "1px solid #444",
+              borderRadius: "10px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+            }}
+          >
             <img
-              src={`http://localhost/demo/serve_image.php?file=${encodeURIComponent(auction.image_path.replace("uploads/", ""))}`}
+              src={`http://localhost/demo/serve_image.php?file=${encodeURIComponent(
+                auction.image_path.replace("uploads/", "")
+              )}`}
               alt={auction.title}
               className="card-img-top"
+              style={{
+                borderTopLeftRadius: "10px",
+                borderTopRightRadius: "10px",
+                height: "300px",
+                objectFit: "cover",
+              }}
             />
             <div className="card-body">
-              <h5 className="card-title" style={{ color: "white" }}>{auction.title}</h5>
-              <p style={{ color: "white" }} className="card-text"><strong style={{ color: "white" }}>Starting Price:</strong> Rs.{auction.price}</p>
-              <p style={{ color: "white" }} className="card-text"><strong style={{ color: "white" }}>Time Left:</strong> {timeLeft}</p>
-              <p style={{ color: "white" }} className="card-text"><strong style={{ color: "white" }}>Current Highest Bid:</strong> Rs.{bids[0] ? bids[0].amount : auction.price}</p>
+              <h5
+                className="card-title"
+                style={{ color: "#ffcc00", fontSize: "24px", fontWeight: "bold" }}
+              >
+                {auction.title}
+              </h5>
+              <p style={{ color: "#ffffff", fontSize: "16px" }}>
+                <strong style={{ color: "#ffcc00" }}>Starting Price:</strong> Rs.
+                {auction.price}
+              </p>
+              <p style={{ color: "#ffffff", fontSize: "16px" }}>
+                <strong style={{ color: "#ffcc00" }}>Time Left:</strong> {timeLeft}
+              </p>
+              <p style={{ color: "#ffffff", fontSize: "16px" }}>
+                <strong style={{ color: "#ffcc00" }}>Current Highest Bid:</strong> Rs.
+                {bids[0] ? bids[0].amount : auction.price}
+              </p>
               {auctionEnded && winner && (
-                <div className="mt-3 alert alert-success">
-                  <h3 className="text-danger">Winner: {winner.username}</h3>
-                  <p><strong>Amount:</strong> Rs.{winner.amount}</p>
+                <div
+                  className="mt-3 alert"
+                  style={{
+                    backgroundColor: "#28a745",
+                    color: "#ffffff",
+                    border: "none",
+                    borderRadius: "5px",
+                    padding: "10px",
+                  }}
+                >
+                  <h3 style={{ color: "white", fontSize: "20px", fontWeight: "bold" }}>
+                    Winner: {winner.username}
+                  </h3>
+                  <p style={{ margin: "0", fontSize: "20px", fontWeight: "bold" }}>
+                    <strong>Amount:</strong> Rs.{winner.amount}
+                  </p>
                 </div>
               )}
-              <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "black", color: "white" }}>
-                <thead>
-                  <tr style={{ backgroundColor: "white", color: "black" }}>
-                    <th style={{ padding: "10px", border: "1px solid white" }}>Id</th>
-                    <th style={{ padding: "10px", border: "1px solid white" }}>Name</th>
-                    <th style={{ padding: "10px", border: "1px solid white" }}>Email</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((item, index) => (
-                    <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "black" : "white", color: index % 2 === 0 ? "white" : "black" }}>
-                      <td style={{ padding: "10px", border: "1px solid white" }}>{item.id}</td>
-                      <td style={{ padding: "10px", border: "1px solid white" }}>{item.name}</td>
-                      <td style={{ padding: "10px", border: "1px solid white" }}>{item.email}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
             </div>
           </div>
         </div>
 
-
+        {/* Right Column: Bid History and Bid Form */}
         <div className="col-md-6">
-          <div className="card bg-dark border-light shadow-lg">
+          <div
+            className="card"
+            style={{
+              backgroundColor: "#2a2a2a",
+              border: "1px solid #444",
+              borderRadius: "10px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+            }}
+          >
             <div className="card-body">
-              <h3 className="text-center mb-4" style={{ color: "white" }}>Bid History</h3>
-              <div className="list-group" style={{ maxHeight: "300px", overflowY: "scroll" }}>
+              <h3
+                className="text-center mb-4"
+                style={{ color: "#ffcc00", fontSize: "24px", fontWeight: "bold" }}
+              >
+                Bid History
+              </h3>
+              <div
+                className="list-group"
+                style={{
+                  maxHeight: "300px",
+                  overflowY: "scroll",
+                  backgroundColor: "#1a1a1a",
+                  borderRadius: "5px",
+                  border: "1px solid #444",
+                }}
+              >
                 {bids.map((bid, index) => (
-                  <div key={index} className="list-group-item bg-dark text-white">
-                    <strong>{bid.username}</strong> bid Rs.{bid.amount} at {bid.time}
+                  <div
+                    key={index}
+                    className="list-group-item"
+                    style={{
+                      backgroundColor: "#2a2a2a",
+                      color: "#ffffff",
+                      border: "none",
+                      borderBottom: "1px solid #444",
+                      padding: "10px",
+                    }}
+                  >
+                    <strong style={{ color: "#ffcc00" }}>{bid.username}</strong> bid Rs.
+                    {bid.amount} at {bid.time}
                   </div>
                 ))}
               </div>
@@ -301,10 +366,27 @@ const SingleData = () => {
                   onChange={(e) => setBidAmount(e.target.value)}
                   placeholder="Enter your bid amount"
                   className="form-control mb-3"
+                  style={{
+                    backgroundColor: "#1a1a1a",
+                    color: "#ffffff",
+                    border: "1px solid #444",
+                    borderRadius: "5px",
+                    padding: "10px",
+                  }}
                 />
                 <button
                   onClick={handleBidSubmit}
-                  className="btn btn-warning btn-block"
+                  className="btn btn-block"
+                  style={{
+                    backgroundColor: "#ffcc00",
+                    color: "#1a1a1a",
+                    border: "none",
+                    borderRadius: "5px",
+                    padding: "10px",
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
                 >
                   Place Bid
                 </button>
@@ -312,7 +394,17 @@ const SingleData = () => {
                 {showEndButton && (
                   <button
                     onClick={handleAuctionEnd}
-                    className="btn btn-danger btn-block mt-3"
+                    className="btn btn-block mt-3"
+                    style={{
+                      backgroundColor: "#dc3545",
+                      color: "#ffffff",
+                      border: "none",
+                      borderRadius: "5px",
+                      padding: "10px",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                    }}
                   >
                     End Auction
                   </button>

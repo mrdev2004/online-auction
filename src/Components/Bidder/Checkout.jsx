@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import "../CommonComponents/Style"; // Ensure this CSS file exists
 import Style from "../CommonComponents/Style";
+import { toast, ToastContainer } from "react-toastify";
 
 const Checkout = () => {
-    const [auctions, setAuctions] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -13,91 +13,166 @@ const Checkout = () => {
     const [city, setCity] = useState("");
     const [zip, setZip] = useState("");
     const [orderNotes, setOrderNotes] = useState("");
+    const location = useLocation();
+    const { auctionData } = location.state || {}; // Extract auction data
+    const [user, setUser] = useState(null);
 
-    // Fetch auctions data
     useEffect(() => {
-        const fetchAuctions = async () => {
-            try {
-                const response = await fetch("http://localhost/demo/getmybids.php");
-                const data = await response.json();
-                if (response.ok) {
-                    setAuctions(data.data); // assuming 'data' is the key containing the auction items
-                } else {
-                    setError(data.error || "Error loading data.");
-                }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
+        const storedUser = localStorage.getItem('user1');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            setFirstName(parsedUser.name || "");
+            setEmail(parsedUser.email || "");
+            setPhone(parsedUser.contact || "");
+        }
 
-        fetchAuctions();
+        // Load Razorpay script
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
     }, []);
 
-    // Handle form submission and store both form and auction data
-    const handleSubmit = (event) => {
-        event.preventDefault(); // Prevent the default form submission behavior
+    const shipping = 50; // Fixed shipping rate
+    const commission = Math.floor(parseInt(auctionData?.bid_amount || 0) * 15 / 100);
+    const totalAmount = Math.floor(parseInt(auctionData?.bid_amount || 0) + 50);
+    const handlePayment = (event) => {
+        event.preventDefault();
 
-        // Collect form data
-        const formData = {
-            firstName,
-            lastName,
+        if (!address.trim() || !/^[A-Za-z\s]+$/.test(address)) {
+            alert("Please enter a valid address (letters only).");
+            return;
+        }
+
+        if (!city.trim() || !/^[A-Za-z\s]+$/.test(city)) {
+            alert("Please enter a valid city name (letters only).");
+            return;
+        }
+        if (!zip.trim() || !/^\d{5,6}$/.test(zip)) {
+            alert("Please enter a valid ZIP code.");
+            return;
+        }
+
+        if (!orderNotes.trim() || !/^[A-Za-z\s]+$/.test(orderNotes)) {
+            alert("Please enter valid order notes (letters only).");
+            return;
+        }
+
+
+        const paymentData = {
+            username: firstName,
+            auction_id: auctionData?.id || "",
             email,
-            phone,
+            phone_no: phone,
             address,
             city,
-            zip,
-            orderNotes,
+            zipcode: zip,
+            order_notes: orderNotes || "No notes",
+            auction_item_name: auctionData?.title || "Unknown",
+            auctioneer_name: auctionData?.auctioneer || "Unknown",
+            auction_item_amt: auctionData?.bid_amount || "0",
+            commission_amt: commission.toString(),
+            total: totalAmount.toString(),
         };
 
-        // Collect auction data (assuming we use the first auction in the list for now)
-        const auctionData = auctions[0] ? {
-            auctionTitle: auctions[0].title,
-            auctioneer: auctions[0].auctioneer,
-            bidAmount: auctions[0].bid_amount,
-            highestBidder: auctions[0].highest_bidder,
-        } : {};
+        // Razorpay options
+        const options = {
+            key: "rzp_test_kfbVnxx7qtGIYs", // Your Razorpay test/live key
+            amount: totalAmount * 100, // Razorpay uses paisa (INR * 100)
+            currency: "INR",
+            name: "Auction Payment",
+            description: "Payment for Auction Item",
+            image: `http://localhost/demo/${auctionData?.image_path || "default.jpg"}`,
+            handler: function (response) {
+                console.log("Payment successful!", response);
 
-        // Combine both form and auction data
-        const checkoutData = {
-            ...formData,
-            auction: auctionData,
+                // Send payment details to backend after successful payment
+                fetch("http://localhost/demo/processpayment.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        ...paymentData,
+                        razorpay_payment_id: response.razorpay_payment_id, // Attach Razorpay Payment ID
+                    }),
+                })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        console.log("Server Response:", data);
+                        if (data.status === "success") {
+                            toast.success("Payment recorded successfully!");
+                            const billingDetails = {
+                                firstName,
+                                lastName,
+                                email,
+                                address,
+                                city,
+                                zip,
+                                orderNotes,
+                            };
+
+                            const orderDetails = auctionData
+                                ? {
+                                    auctionTitle: auctionData.title,
+                                    auctioneer: auctionData.auctioneer,
+                                    bidAmount: parseInt(auctionData.bid_amount),
+                                    commission,
+                                    shipping,
+                                    totalAmount,
+                                    highestBidder: auctionData.highest_bidder,
+                                }
+                                : {};
+
+                            let checkoutData = {
+                                billingDetails,
+                                orderDetails,
+                            };
+
+                            sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData))
+                            setTimeout(() => {
+                                window.location.href = "/Confirmation";
+                            }, 2000);
+                        } else {
+                            toast.error("Error: " + data.message);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error sending data:", error);
+                        toast.error("Failed to send payment data.");
+                    });
+            },
+            prefill: {
+                name: firstName,
+                email: email,
+                contact: phone,
+            },
+            theme: {
+                color: "#3399cc",
+            },
         };
 
-        // Store the combined data in sessionStorage
-        sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData));
-
-        // Log the data to check if it's being stored correctly
-        console.log("Form and auction data saved in sessionStorage:", checkoutData);
+        const razor = new window.Razorpay(options);
+        razor.open();
     };
 
-    // If loading or error occurs
-    if (loading) {
-        return <div>Loading...</div>;
-    }
 
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
 
-    // Calculate totals for the first auction
-    const auction = auctions[0]; // Just take the first auction for now
-    const subtotal = auction ? auction.bid_amount * 1 : 0; // Assuming quantity is 1
-    const shipping = 50; // Flat shipping rate
-    const total = subtotal + shipping;
+
 
     return (
         <>
-            <Style />
             <section className="checkout_area section_gap">
+                <Style />
+                <ToastContainer />
                 <div className="container">
                     <div className="row">
                         {/* Checkout Form */}
-                        <div className="col-lg-8">
-                            <div className="billing_details">
+                        <div className="col-lg-8 mt-5">
+                            <div className="billing_details mt-5">
                                 <h3>Billing Details</h3>
-                                <form onSubmit={handleSubmit}>
+                                <form onSubmit={handlePayment}>
                                     <div className="row">
                                         <div className="col-md-6 mb-3">
                                             <label htmlFor="firstName">First Name</label>
@@ -107,17 +182,6 @@ const Checkout = () => {
                                                 className="form-control"
                                                 value={firstName}
                                                 onChange={(e) => setFirstName(e.target.value)}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label htmlFor="lastName">Last Name</label>
-                                            <input
-                                                type="text"
-                                                id="lastName"
-                                                className="form-control"
-                                                value={lastName}
-                                                onChange={(e) => setLastName(e.target.value)}
                                                 required
                                             />
                                         </div>
@@ -141,7 +205,7 @@ const Checkout = () => {
                                             className="form-control"
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
-                                            required
+
                                         />
                                     </div>
                                     <div className="mb-3">
@@ -152,7 +216,7 @@ const Checkout = () => {
                                             className="form-control"
                                             value={address}
                                             onChange={(e) => setAddress(e.target.value)}
-                                            required
+
                                         />
                                     </div>
                                     <div className="row">
@@ -164,7 +228,7 @@ const Checkout = () => {
                                                 className="form-control"
                                                 value={city}
                                                 onChange={(e) => setCity(e.target.value)}
-                                                required
+
                                             />
                                         </div>
                                         <div className="col-md-6 mb-3">
@@ -175,7 +239,7 @@ const Checkout = () => {
                                                 className="form-control"
                                                 value={zip}
                                                 onChange={(e) => setZip(e.target.value)}
-                                                required
+
                                             />
                                         </div>
                                     </div>
@@ -194,53 +258,37 @@ const Checkout = () => {
                         </div>
 
                         {/* Order Summary */}
-                        <div className="col-lg-4">
+                        <div className="col-lg-4" style={{ paddingTop: "50px" }}>
                             <div className="order_box">
                                 <h2>Your Order</h2>
                                 <ul className="list">
-                                    <li>
-                                        <a href="#">
-                                            Product <span>Total</span>
-                                        </a>
-                                    </li>
-                                    {/* Dynamically render product list for 1 auction */}
-                                    {auction && (
-                                        <li key={auction.id}>
+                                    <li><a href="#">Product <span>Total</span></a></li>
+                                    {auctionData && (
+                                        <li key={auctionData.id}>
                                             <a href="#">
-                                                <h3>{auction.title}</h3>
-                                                <p><strong>Auctioneer:</strong> {auction.auctioneer}</p>
-                                                <p><strong>Bid Amount:</strong> Rs. {auction.bid_amount}</p>
-                                                <p><strong>Highest Bidder:</strong> {auction.highest_bidder}</p>
-                                                <span className="middle">x 1</span>{" "}
-                                                <span className="last">Rs. {auction.bid_amount}</span>
-                                            </a>
-                                        </li>
+                                                <h3>{auctionData.title}</h3>
+                                                <p><strong>Auctioneer:</strong> {auctionData.auctioneer}</p>
+                                                <img
+                                                    src={`http://localhost/demo/${auctionData.image_path}`}
+                                                    alt={auctionData.title}
+                                                    style={{ height: "200px", width: "200px" }}
+                                                />
+                                                <p><strong>Bid Amount:</strong> Rs. {auctionData.bid_amount}</p>
+                                                <p><strong>Highest Bidder:</strong> {auctionData.highest_bidder}</p>
+                                            </a >
+                                        </li >
                                     )}
-                                </ul>
-
-                                {/* Totals */}
+                                </ul >
                                 <ul className="list list_2">
-                                    <li>
-                                        <a href="#">
-                                            Subtotal <span>Rs. {subtotal}</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            Shipping <span>Flat rate: Rs. {shipping}</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            Total <span>Rs. {total}</span>
-                                        </a>
-                                    </li>
+                                    <li><a href="#">Subtotal <span>Rs. {auctionData?.bid_amount}</span></a></li>
+                                    <li><a href="#">Shipping <span>Rs. {shipping}</span></a></li>
+                                    <li><a href="#">Total <span>Rs. {totalAmount}</span></a></li>
                                 </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                            </div >
+                        </div >
+                    </div >
+                </div >
+            </section >
         </>
     );
 };

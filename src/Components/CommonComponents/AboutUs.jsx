@@ -82,9 +82,40 @@ const AboutUs = () => {
         </div>
 
         <div className="col-md-6">
-          <h3 className="font-weight-bold text-dark mb-3" style={{ color: '#2d2d2d' }}>Join Our Community</h3>
+          <h3 className="font-weight-bold text-dark mb-3" style={{ color: '#2d2d2d' }}>Terms and Conditions</h3>
           <p className="text-muted" style={{ fontSize: '1.1rem', lineHeight: '1.6' }}>
-            Whether you’re a seller with valuable items to auction or a buyer looking for your next great deal, we welcome you to join our growing community. Start bidding today and be part of the excitement at <span className="font-weight-bold text-primary">BidRise</span>!
+            1. User Eligibility:
+            Users must be at least 18 years old or of legal age in their jurisdiction.
+
+            2. Account Registration:
+            Users must provide accurate information and maintain account confidentiality.
+
+            3. Auctioneer Responsibilities:
+            Auctioneers must list items truthfully and comply with all legal requirements.
+
+            4. Bidder Responsibilities:
+            Bidders must honor their winning bids and ensure sufficient funds are available.
+
+            5. Bidding Process:
+            All bids are final. The platform is not responsible for technical issues affecting bids.
+
+            6. Payment Terms:
+            Winners must complete payment within the specified timeframe.
+
+            7. Item Delivery:
+            Auctioneers are responsible for item delivery as agreed with the winning bidder.
+
+            8. Prohibited Items:
+            Illegal or counterfeit items are strictly prohibited.
+
+            9. Dispute Resolution:
+            The platform will mediate disputes, with its decision being final.
+
+            10. Platform Liability:
+            The platform is not liable for losses or disputes arising from auction participation.
+
+            11. Privacy Policy:
+            User data is handled per our privacy policy.
           </p>
         </div>
       </div>

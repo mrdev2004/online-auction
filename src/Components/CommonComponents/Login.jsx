@@ -12,6 +12,12 @@ const Login = () => {
   });
   const [error, setError] = useState("");
 
+  // Email Validation Function
+  const isValidEmail = (email) => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -20,6 +26,11 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!isValidEmail(formData.username)) {
+      toast.error("Invalid email format. Please enter a valid email.");
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost/demo/login.php", {
@@ -37,45 +48,33 @@ const Login = () => {
       console.log("Response from server: ", result);
 
       if (result.success) {
-        // Notify the user
         toast.success("Login successful!");
         const role = result.user.role;
-        console.log(role)
-        // Store user data in sessionStorage
+        console.log(role);
+
+        // Store user data
         localStorage.setItem("user", role);
-        localStorage.setItem("user1", JSON.stringify(result.user))
-        sessionStorage.setItem("user", result.user)
-        //   // Redirect to home page
+        localStorage.setItem("user1", JSON.stringify(result.user));
+        sessionStorage.setItem("user", result.user);
+
         setTimeout(() => {
           navigate("/");
           window.location.reload();
-
-        }, [1000]);
+        }, 1000);
       } else {
         setError(result.message);
+        toast.error(result.message);
       }
     } catch (error) {
       console.error("Unexpected Error:", error);
       setError("Something went wrong. Please try again later.");
+      toast.error("Something went wrong. Please try again later.");
     }
   };
 
-  if (formData.username == "admin" && formData.password == "admin123") {
-    toast.success("Admin Login successful!");
-    const role = "Super Admin";
-    // console.log(role)
-    // Store user data in sessionStorage
-    localStorage.setItem("admin", role);
-
-    setTimeout(() => {
-      navigate("/Dashboard")
-      window.location.reload();
-
-    }, [1000]);
-  }
   return (
     <>
-      <section className="login_box_area section_gap">
+      <section className="login_box_area section_gap" style={{ marginTop: "100px" }}>
         <ToastContainer position="top-center" />
         <Style />
         <div className="container">
@@ -137,7 +136,6 @@ const Login = () => {
           </div>
         </div>
       </section>
-
     </>
   );
 };

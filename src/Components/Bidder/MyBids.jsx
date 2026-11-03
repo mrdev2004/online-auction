@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Style from "../CommonComponents/Style";
+import { useNavigate } from 'react-router-dom';
 
 const MyBids = () => {
   const [auctions, setAuctions] = useState([]);
@@ -7,6 +8,8 @@ const MyBids = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userName, setUserName] = useState("");
+  const userStatus = localStorage.getItem("user1") ? JSON.parse(localStorage.getItem("user1")).user_status : null;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user1");
@@ -46,99 +49,114 @@ const MyBids = () => {
   }, [userName, auctions]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div style={{ textAlign: 'center', padding: '50px', fontSize: '1.2rem', color: '#555' }}>Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div style={{ textAlign: 'center', padding: '50px', fontSize: '1.2rem', color: '#dc3545' }}>Error: {error}</div>;
   }
 
-  const cardContainerStyle = {
-    display: 'flex',
-    alignItems: "flex-start", // Align items to the top (left side vertically)
-    flexWrap: 'wrap',
-    gap: '30px',
-    justifyContent: 'flex-start', // Align items to the left
-    paddingTop: "100px",
-    paddingLeft: "30px", // Added some left padding for spacing from the edge
-    paddingBottom: "50px",
+  const handlePayNow = (auctionData) => {
+    console.log(auctionData, "auction");
+    navigate("/Checkout", { state: { auctionData } });
   };
-
-  const cardStyle = {
-    width: '300px',
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    padding: '15px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    backgroundColor: '#f9f9f9',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    transition: 'transform 0.3s, box-shadow 0.3s',
-  };
-
-  const cardHoverStyle = {
-    transform: 'scale(1.05)',
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-  };
-
-  const imageStyle = {
-    width: '100%',
-    height: '200px',
-    objectFit: 'cover',
-    borderRadius: '8px',
-    marginBottom: '15px',
-  };
-
-  const detailsStyle = {
-    marginTop: '10px',
-    textAlign: 'center',
-  };
-
-  const headingStyle = {
-    fontSize: '1.5rem',
-    marginBottom: '10px',
-    color: '#333',
-  };
-
-  const paragraphStyle = {
-    margin: '5px 0',
-    fontSize: '1rem',
-    color: '#555',
-  };
-
-  const strongStyle = {
-    fontWeight: 'bold',
-    color: '#333',
-  };
+  console.log(filteredAuctions)
 
   return (
-    <div>
-      <div style={cardContainerStyle}>
-        <Style />
+    <div style={{ backgroundColor: '#f8f9fa', minHeight: '80vh', marginTop: "20px" }}>
+      <Style />
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px', paddingTop: "50px" }}>
+        <h1 style={{ textAlign: 'center', marginBottom: '30px', color: '#333', fontSize: '2rem', fontWeight: 'bold' }}>
+          My Bids
+        </h1>
         {filteredAuctions.length > 0 ? (
-          filteredAuctions.map((auction, index) => (
-            <div
-              key={index}
-              style={{ ...cardStyle, ':hover': cardHoverStyle }}
-            >
-              <img
-                src={`http://localhost/demo/${auction.image_path}`}
-                alt={auction.title}
-                style={imageStyle}
-              />
-              <div style={detailsStyle}>
-                <h3 style={headingStyle}>{auction.title}</h3>
-                <p style={paragraphStyle}><strong style={strongStyle}>Auctioneer:</strong> {auction.auctioneer}</p>
-                <p style={paragraphStyle}><strong style={strongStyle}>Bid Amount:</strong> Rs.{auction.bid_amount}</p>
-                <p style={paragraphStyle}><strong style={strongStyle}>Highest Bidder:</strong> {auction.highest_bidder}</p>
-                {/* <p style={paragraphStyle}><strong style={strongStyle}>Auction End Time:</strong> {auction.auction_end_time}</p>
-                <p style={paragraphStyle}><strong style={strongStyle}>Status:</strong> {auction.status}</p> */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+            {filteredAuctions.map((auction, index) => (
+              <div
+                key={index}
+                style={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '10px',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                  overflow: 'hidden',
+                  transition: 'transform 0.3s, box-shadow 0.3s',
+                  cursor: 'pointer',
+                  ':hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+                  },
+                }}
+              >
+                <img
+                  src={`http://localhost/demo/${auction.image_path}`}
+                  alt={auction.title}
+                  style={{
+                    width: '100%',
+                    height: '200px',
+                    objectFit: 'cover',
+                    borderBottom: '1px solid #e0e0e0',
+                  }}
+                />
+                <div style={{ padding: '20px' }}>
+                  <h3 style={{ fontSize: '1.5rem', marginBottom: '10px', color: '#333' }}>{auction.title}</h3>
+                  <p style={{ margin: '5px 0', fontSize: '1rem', color: '#555' }}>
+                    <strong style={{ color: '#333' }}>Auctioneer:</strong> {auction.auctioneer}
+                  </p>
+                  <p style={{ margin: '5px 0', fontSize: '1rem', color: '#555' }}>
+                    <strong style={{ color: '#333' }}>Bid Amount:</strong> Rs.{auction.bid_amount}
+                  </p>
+                  <p style={{ margin: '5px 0', fontSize: '1rem', color: '#555' }}>
+                    <strong style={{ color: '#333' }}>Highest Bidder:</strong> {auction.highest_bidder}
+                  </p>
+                  {userStatus !== "Blocked" && (
+                    auction.payment_status !== "payment done" ? (
+                      <button
+                        onClick={() => handlePayNow(auction)}
+                        style={{
+                          width: '100%',
+                          padding: '10px',
+                          backgroundColor: '#007bff',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '5px',
+                          fontSize: '1rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          marginTop: '15px',
+                          transition: 'background-color 0.3s',
+                        }}
+                      >
+                        Pay Now
+                      </button>
+                    ) : (
+                      <p style={{
+                        margin: '20px 0',
+                        fontSize: '1rem',
+                        color: '#555',
+                      }}>
+                        <strong style={{
+                          color: 'green',
+                          fontWeight: "900",
+                          fontSize: "1.2vw",
+                          fontStyle: "bold",
+
+                        }}>
+                          Payment Done
+                        </strong>
+                      </p>
+                    )
+                  )}
+
+
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         ) : (
-          <p>No auctions found for your bids.</p>
+          <p style={{ textAlign: 'center', fontSize: '1.2rem', color: '#555', marginTop: '50px' }}>
+            No auctions found for your bids.
+          </p>
         )}
       </div>
     </div>

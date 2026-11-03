@@ -1,59 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import VerticalNavbar from '../CommonComponents/VerticalNavbar'; // Import the vertical navbar
-import '../CommonComponents/VerticalNavbarCss.css'; // Import the custom CSS for the navbar
-// import Style from "../CommonComponents/Style";
+import React, { useState, useEffect } from "react";
+import VerticalNavbar from "../CommonComponents/VerticalNavbar";
+import "../CommonComponents/VerticalNavbarCss.css";
+import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion"; // Import for animations
 
 const ViewPayments = () => {
     const [payments, setPayments] = useState([]);
     const [totalPayments, setTotalPayments] = useState(0);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
     const [filteredPayments, setFilteredPayments] = useState([]);
+
+    useEffect(() => {
+
+        // Load Razorpay script
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
+    }, []);
 
     useEffect(() => {
         fetchPaymentsData();
     }, []);
 
     const fetchPaymentsData = async () => {
-        // Dummy data for payments
-        const data = [
-            { P_ID: 1, USERNAME: 'John Doe', AUCTION_ID: 'A123', EMAIL: 'john@example.com', PHONE_NO: '1234567890', ADDRESS: '123 Street, City', CITY: 'New York', ZIPCODE: '10001', ORDER_NOTES: 'Paid in full', AUCTION_ITEM_NAME: 'Item 1', AUCTIONEER_NAME: 'Auctioneer 1', AUCTION_ITEM_AMT: 100, COMMISSION_AMT: 10, TOTAL: 110, CREATED_AT: '2025-02-01' },
-            { P_ID: 2, USERNAME: 'Jane Smith', AUCTION_ID: 'A124', EMAIL: 'jane@example.com', PHONE_NO: '2345678901', ADDRESS: '456 Avenue, City', CITY: 'Los Angeles', ZIPCODE: '90001', ORDER_NOTES: 'Paid in full', AUCTION_ITEM_NAME: 'Item 2', AUCTIONEER_NAME: 'Auctioneer 2', AUCTION_ITEM_AMT: 200, COMMISSION_AMT: 20, TOTAL: 220, CREATED_AT: '2025-02-02' },
-            // Add more dummy data here
-        ];
+        try {
+            const response = await axios.get("http://localhost/demo/ViewPayments.php");
 
-        setPayments(data);
-        setTotalPayments(data.length);
-        setFilteredPayments(data);
+            console.log("API Response:", response); // Debugging log
+
+            if (response.data && response.data.payments) {
+                setPayments(response.data.payments);
+                setTotalPayments(response.data.totalPayments);
+                setFilteredPayments(response.data.payments);
+            } else {
+                console.error("Invalid API Response Structure:", response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
     };
 
+    // Handle search query change
     const handleSearchChange = (e) => {
-        setSearchQuery(e.target.value);
-    };
+        const query = e.target.value.toLowerCase();
+        setSearchQuery(query);
 
-    const filterPayments = () => {
-        const lowercasedQuery = searchQuery.toLowerCase();
-        const filtered = payments.filter(
-            (payment) =>
-                payment.USERNAME.toLowerCase().includes(lowercasedQuery) ||
-                payment.EMAIL.toLowerCase().includes(lowercasedQuery) ||
-                payment.AUCTION_ITEM_NAME.toLowerCase().includes(lowercasedQuery)
+        const filtered = payments.filter(payment =>
+            payment.username.toLowerCase().includes(query) ||
+            payment.email.toLowerCase().includes(query) ||
+            payment.auction_item_name.toLowerCase().includes(query)
         );
         setFilteredPayments(filtered);
     };
 
-    const handleSearchSubmit = (e) => {
-        e.preventDefault();
-        filterPayments();
-    };
-
     return (
-        <div style={{ display: 'flex' }}>
-            <VerticalNavbar /> {/* Include the Vertical Navbar */}
+        <div style={{ display: "flex" }}>
+            <VerticalNavbar />
 
             {/* Main Content Area */}
             <div style={styles.container}>
                 {/* Search Bar */}
-                <form onSubmit={handleSearchSubmit} style={styles.searchForm}>
+                <div style={styles.searchForm}>
                     <input
                         type="text"
                         style={styles.searchInput}
@@ -61,14 +69,11 @@ const ViewPayments = () => {
                         value={searchQuery}
                         onChange={handleSearchChange}
                     />
-                    <button type="submit" style={styles.searchButton}>
-                        Search
-                    </button>
-                </form>
+                </div>
 
-                {/* Stats Card (Optional, depending on how you want to display total records) */}
+                {/* Stats Card */}
                 <div style={styles.statsContainer}>
-                    <div style={{ ...styles.statsCard, backgroundColor: '#4e73df' }}>
+                    <div style={{ ...styles.statsCard, backgroundColor: "#4e73df" }}>
                         <h5 style={styles.statsTitle}>Total Payments</h5>
                         <p style={styles.statsValue}>{totalPayments}</p>
                     </div>
@@ -97,33 +102,46 @@ const ViewPayments = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredPayments.length > 0 ? (
-                                filteredPayments.map((payment) => (
-                                    <tr key={payment.P_ID} style={styles.tableRow}>
-                                        <td style={styles.tableCell}>{payment.P_ID}</td>
-                                        <td style={styles.tableCell}>{payment.USERNAME}</td>
-                                        <td style={styles.tableCell}>{payment.AUCTION_ID}</td>
-                                        <td style={styles.tableCell}>{payment.EMAIL}</td>
-                                        <td style={styles.tableCell}>{payment.PHONE_NO}</td>
-                                        <td style={styles.tableCell}>{payment.ADDRESS}</td>
-                                        <td style={styles.tableCell}>{payment.CITY}</td>
-                                        <td style={styles.tableCell}>{payment.ZIPCODE}</td>
-                                        <td style={styles.tableCell}>{payment.ORDER_NOTES}</td>
-                                        <td style={styles.tableCell}>{payment.AUCTION_ITEM_NAME}</td>
-                                        <td style={styles.tableCell}>{payment.AUCTIONEER_NAME}</td>
-                                        <td style={styles.tableCell}>{payment.AUCTION_ITEM_AMT}</td>
-                                        <td style={styles.tableCell}>{payment.COMMISSION_AMT}</td>
-                                        <td style={styles.tableCell}>{payment.TOTAL}</td>
-                                        <td style={styles.tableCell}>{payment.CREATED_AT}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="14" style={styles.noUsersCell}>
-                                        No payments found.
-                                    </td>
-                                </tr>
-                            )}
+                            <AnimatePresence>
+                                {filteredPayments.length > 0 ? (
+                                    filteredPayments.map((payment) => (
+                                        <motion.tr
+                                            key={payment.p_id}
+                                            style={styles.tableRow}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <td style={styles.tableCell}>{payment.p_id}</td>
+                                            <td style={styles.tableCell}>{payment.username}</td>
+                                            <td style={styles.tableCell}>{payment.auction_id}</td>
+                                            <td style={styles.tableCell}>{payment.email}</td>
+                                            <td style={styles.tableCell}>{payment.phone_no}</td>
+                                            <td style={styles.tableCell}>{payment.address}</td>
+                                            <td style={styles.tableCell}>{payment.city}</td>
+                                            <td style={styles.tableCell}>{payment.zipcode}</td>
+                                            <td style={styles.tableCell}>{payment.order_notes}</td>
+                                            <td style={styles.tableCell}>{payment.auction_item_name}</td>
+                                            <td style={styles.tableCell}>{payment.auctioneer_name}</td>
+                                            <td style={styles.tableCell}>{payment.auction_item_amt}</td>
+                                            <td style={styles.tableCell}>{payment.commission_amt}</td>
+                                            <td style={styles.tableCell}>{payment.total}</td>
+                                            <td style={styles.tableCell}>{payment.created_at}</td>
+                                        </motion.tr>
+                                    ))
+                                ) : (
+                                    <motion.tr
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                    >
+                                        <td colSpan="15" style={styles.noUsersCell}>
+                                            No payments found.
+                                        </td>
+                                    </motion.tr>
+                                )}
+                            </AnimatePresence>
                         </tbody>
                     </table>
                 </div>

@@ -1,0 +1,13 @@
+li.nav-item::marker{
+    display: none !important;
+    height: 100px !important;
+}
+ul {
+    list-style: none !important;
+    margin: 0;
+    padding: 0;
+}
+li
+{
+    list-style: none !important;
+}

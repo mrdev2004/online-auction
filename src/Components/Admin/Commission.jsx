@@ -3,6 +3,7 @@ import Style from "../CommonComponents/Style";
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure bootstrap is included
+import { toast, ToastContainer } from 'react-toastify';
 
 const Commission = () => {
   const [users, setUsers] = useState([]);
@@ -24,6 +25,7 @@ const Commission = () => {
     try {
       const response = await fetch(`http://localhost/demo/tmp2.php?page=${page + 1}&pageSize=${pageSize}`);
       const data = await response.json();
+      console.log(data)
       setUsers(data.users);
       setFilteredUsers(data.users); // Initially, show all users
       setTotalPages(data.totalPages);
@@ -67,51 +69,36 @@ const Commission = () => {
     }
   };
 
-  // Handle modal close
-  const handleCloseModal = () => setShowModal(false);
+  // Handle commission approval update
+  const handleApproval = async (id, currentStatus, toast_text) => {
 
-  // Handle modal open and set current user
-  const handleEdit = (user) => {
-    setCurrentUser(user);
-    setShowModal(true);
-  };
 
-  // Handle update user
-  const handleUpdate = async () => {
-    if (currentUser) {
-      try {
-        const response = await fetch('http://localhost/demo/tmp2.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            update_id: currentUser.id,
-            auction: currentUser.auction,
-            commission: currentUser.commission,
-            date: currentUser.date,
-          }),
-        });
-        const data = await response.json();
+    try {
+      const response = await fetch('http://localhost/demo/tmp2.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          approval_id: id,
+          approval_status: currentStatus,
+        }),
+      });
 
-        if (data.message === 'User updated successfully') {
-          fetchUsersData(currentPage); // Refresh users after update
-          setShowModal(false);
-        } else {
-          alert('Failed to update user');
-        }
-      } catch (error) {
-        console.error('Error updating user:', error);
+      const data = await response.json();
+      if (data.message === 'Approval status updated') {
+        toast.success(toast_text)
+        fetchUsersData(); // Refresh data
+      } else {
+        alert('Failed to update approval status');
       }
+    } catch (error) {
+      console.error('Error updating approval status:', error);
     }
-  };
-
-  // Handle page click for pagination
-  const handlePageClick = (selectedPage) => {
-    setCurrentPage(selectedPage.selected);
   };
 
   return (
     <div style={{ display: 'flex' }}>
       {/* Main Content Area */}
+      <ToastContainer />
       <div style={styles.container}>
         {/* Search Bar */}
         <form onSubmit={(e) => e.preventDefault()} style={styles.searchForm}>
@@ -127,15 +114,7 @@ const Commission = () => {
           </button>
         </form>
 
-        {/* Stats Cards */}
-        <div style={styles.statsContainer}>
-          {/* Example stat cards */}
-          <div style={{ ...styles.statsCard, backgroundColor: '#4e73df' }}>
-            <h5 style={styles.statsTitle}>Total Users</h5>
-            <p style={styles.statsValue}>{users.length}</p>
-          </div>
-          {/* You can add more stats similar to the example above */}
-        </div>
+
 
         {/* Users Table */}
         <div style={styles.tableContainer}>
@@ -146,6 +125,10 @@ const Commission = () => {
                 <th style={styles.tableHeader}>Auction</th>
                 <th style={styles.tableHeader}>Commission</th>
                 <th style={styles.tableHeader}>Date</th>
+                <th style={styles.tableHeader}>Payment Status</th>
+
+                <th style={styles.tableHeader}>Approval Status</th>
+                <th style={styles.tableHeader}>Approval Status Actions</th>
                 <th style={styles.tableHeader}>Action</th>
               </tr>
             </thead>
@@ -157,11 +140,39 @@ const Commission = () => {
                     <td style={styles.tableCell}>{user.auction}</td>
                     <td style={styles.tableCell}>{user.commission}</td>
                     <td style={styles.tableCell}>{user.date}</td>
+                    <td style={styles.tableCell}>{user.approval_status == "" ? "Not Received" : user.approval_status}</td>
+                    <td style={styles.tableCell}>{user.payment_status == "" ? "Not Paid" : user.payment_status}</td>
                     <td style={styles.tableCell}>
                       <button
-                        onClick={() => handleDelete(user.id)}
-                        style={styles.deleteButton}
+                        onClick={() => handleApproval(user.id, "Received", "Commission Approved")}
+                        style={{
+                          padding: "5px 10px",
+                          backgroundColor: "green",
+                          color: "white",
+                          border: "none",
+                          cursor: "pointer",
+                          marginRight: "5px",
+                        }}
                       >
+                        Yes
+                      </button>
+
+                      <button
+                        onClick={() => handleApproval(user.id, "Not Received", "Commission Not Approved")}
+                        style={{
+                          padding: "5px 10px",
+                          backgroundColor: "red",
+                          color: "white",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        No
+                      </button>
+
+                    </td>
+                    <td style={styles.tableCell}>
+                      <button onClick={() => handleDelete(user.id)} style={styles.deleteButton}>
                         Delete
                       </button>
                     </td>
@@ -169,13 +180,14 @@ const Commission = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" style={styles.noUsersCell}>
-                    No users found.
+                  <td colSpan="6" style={styles.noUsersCell}>
+                    No data found.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+
         </div>
       </div>
     </div>

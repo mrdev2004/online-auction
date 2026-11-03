@@ -48,24 +48,7 @@ function App() {
           </div>
 
           {/* Additional Card 1 */}
-          <div style={styles.cardContainer}>
-            <div style={{ ...styles.card, backgroundColor: '#36b9cc' }}>
-              <div style={styles.cardBody}>
-                <h5 style={styles.cardTitle}>Active Users</h5>
-                <p style={styles.cardText}>1,234 Users</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Card 2 */}
-          <div style={styles.cardContainer}>
-            <div style={{ ...styles.card, backgroundColor: '#f6c23e' }}>
-              <div style={styles.cardBody}>
-                <h5 style={styles.cardTitle}>Pending Tasks</h5>
-                <p style={styles.cardText}>15 Tasks</p>
-              </div>
-            </div>
-          </div>
+       
         </div>
 
         {/* Recent Auctions Section */}
@@ -85,7 +68,7 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentAuctions.map((auction) => (
+                  {recentAuctions.slice(0,20).map((auction) => (
                     <tr key={auction.id} style={styles.tableRow}>
                       <td style={styles.tableCell}>{auction.id}</td>
                       <td style={styles.tableCell}>{auction.title}</td>
@@ -136,12 +119,13 @@ const styles = {
   app: {
     backgroundColor: '#f8f9fc',
     minHeight: '100vh',
-    padding: '20px',
+    leftpadding: '120px',
     fontFamily: "'Nunito', sans-serif",
   },
   container: {
     maxWidth: '1200px',
     margin: '0 auto',
+    paddingLeft:'230px'
   },
   header: {
     textAlign: 'center',

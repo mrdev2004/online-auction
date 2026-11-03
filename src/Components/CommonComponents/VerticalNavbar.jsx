@@ -25,14 +25,14 @@ const VerticalNavbar = () => {
 
                     {/* Dashboard Link */}
                     <NavLink to="/Dashboard" className="dashboard-nav-item">
-                        <i className="fas fa-gavel"></i> Dashboard
+                        <i ></i> Dashboard
                     </NavLink>
 
                     {/* Users Link */}
                     {role1 === "Super Admin" && (
                         <div className="dashboard-nav-dropdown">
                             <a href="ViewUsers" className="dashboard-nav-item ">
-                                <i className="fas fa-gavel"></i> Manage Users
+                                <i ></i> Manage Users
                             </a>
                         </div>
                     )}
@@ -41,32 +41,35 @@ const VerticalNavbar = () => {
                     {/* Commissions Link */}
                     {role1 === "Super Admin" && (
                         <NavLink to="/AdminCommission" className="dashboard-nav-item">
-                            <i className="fas fa-gavel"></i> Manage Commissions
+                            <i ></i> Manage Commissions
                         </NavLink>
                     )}
 
                     {/* View Auctions Link */}
                     {role1 === "Super Admin" && (
                         <NavLink to="/Adata" className="dashboard-nav-item">
-                            <i className="fas fa-gavel"></i> View Auctions
+                            <i className=""></i> Manage Auctions
                         </NavLink>
                     )}
 
                     {/* Settings and Profile Links */}
                     <NavLink to="/ViewAdmins" className="dashboard-nav-item">
-                        <i className="fas fa-cogs"></i> View Admins
+                        <i ></i> View Admins
                     </NavLink>
                     <NavLink to="/AdminInsert   " className="dashboard-nav-item">
-                        <i className="fas fa-user"></i> Admin Insert Page
+                        <i ></i> Admin Insert Page
                     </NavLink>
                     <NavLink to="/ViewPayment" className="dashboard-nav-item">
-                        <i className="fas fa-user"></i> Payment Record Page
+                        <i ></i> Payment Record Page
+                    </NavLink>
+                    <NavLink to="/ViewFeedback" className="dashboard-nav-item">
+                        <i ></i> Feedback Record Page
                     </NavLink>
                     <div className="nav-item-divider"></div>
 
                     {/* Logout Link */}
                     <a href="#!" onClick={handleLogout} className="dashboard-nav-item">
-                        <i className="fas fa-gavel"></i> Logout
+                        <i ></i> Logout
                     </a>
                 </nav>
             </div>

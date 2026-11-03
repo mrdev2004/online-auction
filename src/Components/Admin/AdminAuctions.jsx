@@ -43,7 +43,6 @@ const AdminAuctions = () => {
         setUpdateEndTime(auction.end_time);
         setShowModal(true);
     };
-
     const handleUpdateAuction = async () => {
         const formData = new FormData();
         formData.append('update_id', auctionToEdit.id);
@@ -58,13 +57,15 @@ const AdminAuctions = () => {
                 method: 'POST',
                 body: formData,
             });
+
             const result = await response.json();
+
             if (result.status === 'success') {
                 toast.success('Updated Successfully');
                 fetchAuctions();
                 setShowModal(false);
             } else {
-                alert('Error updating auction');
+                toast.error('Error updating auction: ' + result.message);
             }
         } catch (error) {
             console.error('Error updating auction:', error);
@@ -111,7 +112,7 @@ const AdminAuctions = () => {
     const totalAuctions = auctions.length;
 
     return (
-        <div className="container mt-5" style={{ scrollBehavior: 'smooth' }}>
+        <div className="container mt-5" style={{ scrollBehavior: 'smooth', paddingLeft: "210px" }}>
             <Style />
             <ToastContainer />
             <h2 className="mb-4" >Auctions</h2>

@@ -4,6 +4,7 @@ import "./index.css";
 import Style from "../CommonComponents/Style";
 import Loader from "../LoaderComponent/Loader";
 import { Modal, Button, Form } from "react-bootstrap";
+import { use } from "react";
 
 const ShopData = () => {
   const [auctions, setAuctions] = useState([]);
@@ -11,6 +12,7 @@ const ShopData = () => {
   const [loading, setLoading] = useState(true);
   const [showLoader, setShowLoader] = useState(true);
   const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
     name: "",
@@ -64,30 +66,45 @@ const ShopData = () => {
   };
 
   const applyFilters = () => {
-    const filtered = auctions
-      .filter((auction) => calculateTimeLeft(auction.end_time) !== "Auction ended") // Exclude ended auctions
-      .filter((auction) => {
-        const matchesName = auction.title.toLowerCase().includes(filters.name.toLowerCase());
-
-        const formatDate = (date) => {
-          const d = new Date(date);
-          const month = String(d.getMonth() + 1).padStart(2, "0"); // Ensure 2-digit month
-          const day = String(d.getDate()).padStart(2, "0"); // Ensure 2-digit day
-          const year = d.getFullYear();
-          return `${month}/${day}/${year}`;
-        };
-
-        const matchesDate = filters.date
-          ? formatDate(auction.start_time) === formatDate(filters.date)
-          : true;
-
-        const matchesPrice = filters.price ? auction.price <= parseFloat(filters.price) : true;
-
-        return matchesName && matchesDate && matchesPrice;
-      });
-
+    let filtered = auctions.filter((auction) => {
+      return (
+        (!filters.name || auction.title.toLowerCase().includes(filters.name.toLowerCase())) &&
+        (!filters.date || auction.start_time.startsWith(filters.date)) &&
+        (!filters.price || parseFloat(auction.price) <= parseFloat(filters.price))
+      );
+    });
     setFilteredAuctions(filtered);
-    setShowFilterModal(false); // Close modal after applying filters
+  };
+  const validateInputs = () => {
+    let newErrors = {};
+
+    // Name validation: Allow only alphabets and spaces
+    if (filters.name && !/^[a-zA-Z\s]+$/.test(filters.name)) {
+      newErrors.name = "Name should contain only alphabets.";
+    }
+
+    // Date validation: Ensure it's a valid date
+    if (filters.date) {
+      const dateObj = new Date(filters.date);
+      if (isNaN(dateObj.getTime())) {
+        newErrors.date = "Please enter a valid date.";
+      }
+    }
+
+    // Price validation: Should be a positive number
+    if (filters.price && (!/^\d+(\.\d{1,2})?$/.test(filters.price) || parseFloat(filters.price) <= 0)) {
+      newErrors.price = "Please enter a valid positive price.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleApplyFilters = () => {
+    if (validateInputs()) {
+      applyFilters();
+      setShowFilterModal(false);
+    }
   };
 
 
@@ -97,6 +114,9 @@ const ShopData = () => {
   };
 
   const userRole = localStorage.getItem("user1") ? JSON.parse(localStorage.getItem("user1")).role : null;
+  const userStatus = localStorage.getItem("user1") ? JSON.parse(localStorage.getItem("user1")).user_status : null;
+  console.log(userStatus, 'ssss')
+  // console.log(userStatus,"gyguy")
 
   if (showLoader) return <Loader />;
   if (loading) return <div>Loading...</div>;
@@ -139,19 +159,21 @@ const ShopData = () => {
                 <p className="time-left">
                   <strong>Time Left:</strong> {calculateTimeLeft(auction.end_time)}
                 </p>
-
-                {userRole === "Bidder" && (
+                {userStatus === "Unblocked" || userStatus === "" && userRole === "Bidder" ? (
                   <button onClick={() => handleBid(auction)} className="btn btn-primary">
                     Place Bid
                   </button>
+                ) : (
+                  <p>Currently you are blocked</p>
                 )}
+
+
               </div>
             </div>
           ))}
       </div>
 
 
-      {/* Filter Modal */}
       <Modal show={showFilterModal} onHide={() => setShowFilterModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Filter Auctions</Modal.Title>
@@ -165,16 +187,22 @@ const ShopData = () => {
                 placeholder="Enter auction name"
                 value={filters.name}
                 onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                isInvalid={!!errors.name}
               />
+              <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
             </Form.Group>
+
             <Form.Group controlId="formDate">
               <Form.Label>Date</Form.Label>
               <Form.Control
                 type="date"
                 value={filters.date}
                 onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+                isInvalid={!!errors.date}
               />
+              <Form.Control.Feedback type="invalid">{errors.date}</Form.Control.Feedback>
             </Form.Group>
+
             <Form.Group controlId="formPrice">
               <Form.Label>Max Price</Form.Label>
               <Form.Control
@@ -182,7 +210,9 @@ const ShopData = () => {
                 placeholder="Enter max price"
                 value={filters.price}
                 onChange={(e) => setFilters({ ...filters, price: e.target.value })}
+                isInvalid={!!errors.price}
               />
+              <Form.Control.Feedback type="invalid">{errors.price}</Form.Control.Feedback>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -190,7 +220,7 @@ const ShopData = () => {
           <Button variant="secondary" onClick={() => setShowFilterModal(false)}>
             Close
           </Button>
-          <Button variant="primary" onClick={applyFilters}>
+          <Button variant="primary" onClick={handleApplyFilters}>
             Apply Filters
           </Button>
         </Modal.Footer>

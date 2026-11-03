@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-
 const ViewAdmins = () => {
     const [users, setUsers] = useState([]);
     const [totalUsers, setTotalUsers] = useState(0);
@@ -15,13 +14,28 @@ const ViewAdmins = () => {
 
     const fetchUsersData = async () => {
         try {
-            const response = await fetch('http://localhost/demo/ViewUsers.php');
+            const response = await fetch('http://localhost/demo/viewadmin.php');
             const data = await response.json();
-            setUsers(data.users);
-            setTotalUsers(data.totalUsers);
-            setAdminUsers(data.adminUsers);
-            setBidderUsers(data.bidderUsers);
-            setFilteredUsers(data.users);
+
+            console.log("Fetched Data:", data);
+
+            // Map the correct keys
+            const formattedUsers = data.map((user) => ({
+                id: user.a_id,
+                name: user.admin_name,
+                email: user.admin_email,
+                role: user.admin_role,
+                contact: user.admin_contact,
+            }));
+
+            setUsers(formattedUsers);
+            setFilteredUsers(formattedUsers); // Default filtered list
+
+            // Count Users
+            setTotalUsers(formattedUsers.length);
+            setAdminUsers(formattedUsers.filter(user => user.role.toLowerCase().includes('admin')).length);
+            setBidderUsers(formattedUsers.filter(user => user.role.toLowerCase().includes('bidder')).length);
+
         } catch (error) {
             console.error('Error fetching users data:', error);
         }
@@ -50,14 +64,20 @@ const ViewAdmins = () => {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this user?')) {
             try {
-                const response = await fetch(`http://localhost/demo/ViewUsers.php?id=${id}`, {
+                const response = await fetch(`http://localhost/demo/viewadmin.php`, {
                     method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ a_id: id }), // Send ID in the request body
                 });
 
+                const result = await response.json();
                 if (response.ok) {
-                    fetchUsersData();
+                    alert(result.success || 'User deleted successfully');
+                    fetchUsersData(); // Refresh the list after deletion
                 } else {
-                    console.error('Failed to delete user');
+                    alert(result.error || 'Failed to delete user');
                 }
             } catch (error) {
                 console.error('Error deleting user:', error);
@@ -65,42 +85,30 @@ const ViewAdmins = () => {
         }
     };
 
+
+
     return (
         <div style={{ display: 'flex' }}>
-
-            {/* Main Content Area */}
             <div style={styles.container}>
-                {/* Search Bar */}
                 <form onSubmit={handleSearchSubmit} style={styles.searchForm}>
                     <input
                         type="text"
                         style={styles.searchInput}
-                        placeholder="Search by name, email, or role..."
+                        placeholder="Search by name, email"
                         value={searchQuery}
                         onChange={handleSearchChange}
                     />
-                    <button type="submit" style={styles.searchButton}>
-                        Search
-                    </button>
+                    <button type="submit" style={styles.searchButton}>Search</button>
                 </form>
 
-                {/* Stats Cards */}
                 <div style={styles.statsContainer}>
                     <div style={{ ...styles.statsCard, backgroundColor: '#4e73df' }}>
-                        <h5 style={styles.statsTitle}>Total Users</h5>
+                        <h5 style={styles.statsTitle}>Admin Users</h5>
                         <p style={styles.statsValue}>{totalUsers}</p>
                     </div>
-                    <div style={{ ...styles.statsCard, backgroundColor: '#1cc88a' }}>
-                        <h5 style={styles.statsTitle}>Auctioneer Users</h5>
-                        <p style={styles.statsValue}>{adminUsers}</p>
-                    </div>
-                    <div style={{ ...styles.statsCard, backgroundColor: '#f6c23e' }}>
-                        <h5 style={styles.statsTitle}>Bidder Users</h5>
-                        <p style={styles.statsValue}>{bidderUsers}</p>
-                    </div>
+
                 </div>
 
-                {/* Users Table */}
                 <div style={styles.tableContainer}>
                     <table style={styles.table}>
                         <thead>
@@ -108,8 +116,6 @@ const ViewAdmins = () => {
                                 <th style={styles.tableHeader}>ID</th>
                                 <th style={styles.tableHeader}>Name</th>
                                 <th style={styles.tableHeader}>Email</th>
-                                <th style={styles.tableHeader}>Role</th>
-                                <th style={styles.tableHeader}>Contact</th>
                                 <th style={styles.tableHeader}>Action</th>
                             </tr>
                         </thead>
@@ -120,13 +126,9 @@ const ViewAdmins = () => {
                                         <td style={styles.tableCell}>{user.id}</td>
                                         <td style={styles.tableCell}>{user.name}</td>
                                         <td style={styles.tableCell}>{user.email}</td>
-                                        <td style={styles.tableCell}>{user.role}</td>
-                                        <td style={styles.tableCell}>{user.contact}</td>
+
                                         <td style={styles.tableCell}>
-                                            <button
-                                                onClick={() => handleDelete(user.id)}
-                                                style={styles.deleteButton}
-                                            >
+                                            <button onClick={() => handleDelete(user.id)} style={styles.deleteButton}>
                                                 Delete
                                             </button>
                                         </td>
@@ -134,9 +136,7 @@ const ViewAdmins = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" style={styles.noUsersCell}>
-                                        No users found.
-                                    </td>
+                                    <td colSpan="6" style={styles.noUsersCell}>No users found.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -146,6 +146,7 @@ const ViewAdmins = () => {
         </div>
     );
 };
+
 
 // Inline CSS Styles
 const styles = {

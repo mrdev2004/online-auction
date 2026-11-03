@@ -6,6 +6,54 @@ const Contact = () => {
         longitude: null,
     });
 
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+    });
+
+    const [errors, setErrors] = useState({});
+
+    const validate = () => {
+        let newErrors = {};
+
+        if (!formData.name.trim()) newErrors.name = "Name is required.";
+        if (!formData.email.trim()) {
+            newErrors.email = "Email is required.";
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = "Email address is invalid.";
+        }
+        if (!formData.subject.trim()) newErrors.subject = "Subject is required.";
+        if (!formData.message.trim()) newErrors.message = "Message is required.";
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if (validate()) {
+            alert('Your message has been sent!');
+            console.log('Form Data:', formData);
+            // You can also send this data to a backend here
+
+            // Reset form
+            setFormData({
+                name: '',
+                email: '',
+                subject: '',
+                message: ''
+            });
+            setErrors({});
+        }
+    };
     useEffect(() => {
         // Check if Geolocation is available
         if (navigator.geolocation) {
@@ -24,7 +72,7 @@ const Contact = () => {
         } else {
             console.error('Geolocation is not available in this browser.');
         }
-    }, []);
+    }, [location]);
     console.log(location.latitude, location.longitude);
 
     const mapSrc = location.latitude && location.longitude
@@ -96,14 +144,14 @@ const Contact = () => {
                                 <div className="info_item">
                                     <i className="lnr lnr-phone-handset" />
                                     <h6>
-                                        <a href="tel:+910000000000">+91 00000 00000</a>
+                                        <a href="tel:+910000000000">+91 88490 46086</a>
                                     </h6>
                                     <p>Mon to Fri 9am to 6 pm</p>
                                 </div>
                                 <div className="info_item">
                                     <i className="lnr lnr-envelope" />
                                     <h6>
-                                        <a href="mailto:support@karmashop.com">support@karmashop.com</a>
+                                        <a href="mailto:support@karmashop.com">support@bidrise.com</a>
                                     </h6>
                                     <p>Send us your query anytime!</p>
                                 </div>
@@ -115,11 +163,8 @@ const Contact = () => {
                             <form
                                 className="row contact_form"
                                 id="contactForm"
-                                noValidate="novalidate"
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    alert('Your message has been sent!');
-                                }}
+                                noValidate
+                                onSubmit={handleSubmit}
                             >
                                 <div className="col-md-6">
                                     <div className="form-group">
@@ -128,8 +173,10 @@ const Contact = () => {
                                             className="form-control"
                                             name="name"
                                             placeholder="Enter your name"
-                                            required
+                                            value={formData.name}
+                                            onChange={handleChange}
                                         />
+                                        {errors.name && <small className="text-danger">{errors.name}</small>}
                                     </div>
                                     <div className="form-group">
                                         <input
@@ -137,8 +184,10 @@ const Contact = () => {
                                             className="form-control"
                                             name="email"
                                             placeholder="Enter email address"
-                                            required
+                                            value={formData.email}
+                                            onChange={handleChange}
                                         />
+                                        {errors.email && <small className="text-danger">{errors.email}</small>}
                                     </div>
                                     <div className="form-group">
                                         <input
@@ -146,8 +195,10 @@ const Contact = () => {
                                             className="form-control"
                                             name="subject"
                                             placeholder="Enter Subject"
-                                            required
+                                            value={formData.subject}
+                                            onChange={handleChange}
                                         />
+                                        {errors.subject && <small className="text-danger">{errors.subject}</small>}
                                     </div>
                                 </div>
                                 <div className="col-md-6">
@@ -155,10 +206,12 @@ const Contact = () => {
                                         <textarea
                                             className="form-control"
                                             name="message"
-                                            rows="1"
+                                            rows="4"
                                             placeholder="Enter Message"
-                                            required
+                                            value={formData.message}
+                                            onChange={handleChange}
                                         />
+                                        {errors.message && <small className="text-danger">{errors.message}</small>}
                                     </div>
                                 </div>
                                 <div className="col-md-12 text-right">

@@ -36,13 +36,24 @@ const Register = () => {
 
     // Validate form
     const validateForm = () => {
-        const { name, email, password, contact, terms } = formData;
+        const { name, email, password, contact, terms, profilePhoto } = formData;
 
         if (!name.trim()) return 'Full Name is required.';
         if (!/^[A-Za-z\s]+$/.test(name)) return 'Full Name must contain only letters.';
         if (!email.match(/^\S+@\S+\.\S+$/)) return 'Invalid email address.';
+
+        // Password checks individually
         if (password.length < 6) return 'Password must be at least 6 characters.';
-        if (!contact.match(/^\d{10}$/)) return 'Contact number must be 10 digits.';
+        if (!/^[A-Z]/.test(password)) return 'Password must start with a capital letter.';
+        if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter.';
+        if (!/\d/.test(password)) return 'Password must contain at least one number.';
+
+        // Contact validation (exactly 10 digits, numeric only)
+        if (!/^\d{10}$/.test(contact)) return 'Contact number must be exactly 10 digits and should not contain alphabets or special characters.';
+
+        // Check if the file is uploaded
+        if (!profilePhoto) return 'Please upload a profile photo.';
+
         if (!terms) return 'You must agree to the terms and conditions.';
 
         return null;
@@ -93,12 +104,12 @@ const Register = () => {
 
     return (
         <>
-            <section className="login_box_area section_gap">
+            <section className="login_box_area section_gap" >
                 <Style />
                 <ToastContainer />
                 <div className="container">
                     <div className="row">
-                        <div className="col-lg-6">
+                        <div className="col-lg-6" style={{ marginTop: "100px" }}>
                             <div className="login_box_img">
                                 <img className="img-fluid" src="img/login.jpg" alt="Login Illustration" />
                                 <div className="hover">

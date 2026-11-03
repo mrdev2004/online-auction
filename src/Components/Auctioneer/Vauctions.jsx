@@ -18,6 +18,7 @@ const Vauctions = () => {
     price: "",
   });
 
+  const auctioneer = localStorage.getItem("user1") ? JSON.parse(localStorage.getItem("user1"))?.name : null;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,8 +30,11 @@ const Vauctions = () => {
         const data = await response.json();
 
         if (response.ok) {
-          setAuctions(data.data);
-          setFilteredAuctions(data.data); // Initialize filtered data
+          console.log(data.data)
+          // Correct filter logic: use comparison (===) not assignment (=)
+          const userdata = data.data.filter((item) => item.auctioneer_name === auctioneer);
+          setAuctions(userdata);
+          setFilteredAuctions(userdata);
         } else {
           setError(data.error || "Error loading data.");
         }
@@ -42,7 +46,7 @@ const Vauctions = () => {
     };
 
     fetchAuctions();
-  }, []);
+  }, [auctioneer]);
 
   const calculateTimeLeft = (endTime) => {
     const now = new Date();
@@ -71,8 +75,8 @@ const Vauctions = () => {
 
         const formatDate = (date) => {
           const d = new Date(date);
-          const month = String(d.getMonth() + 1).padStart(2, "0"); // Ensure 2-digit month
-          const day = String(d.getDate()).padStart(2, "0"); // Ensure 2-digit day
+          const month = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
           const year = d.getFullYear();
           return `${month}/${day}/${year}`;
         };
@@ -81,39 +85,43 @@ const Vauctions = () => {
           ? formatDate(auction.start_time) === formatDate(filters.date)
           : true;
 
-        const matchesPrice = filters.price ? auction.price <= parseFloat(filters.price) : true;
+        const matchesPrice = filters.price
+          ? auction.price <= parseFloat(filters.price)
+          : true;
 
         return matchesName && matchesDate && matchesPrice;
       });
 
     setFilteredAuctions(filtered);
-    setShowFilterModal(false); // Close modal after applying filters
+    setShowFilterModal(false);
   };
-
 
   const handleBid = (auction) => {
     navigate("/product", { state: { auction } });
     window.location.reload();
   };
 
-  const userRole = localStorage.getItem("user1") ? JSON.parse(localStorage.getItem("user1")).role : null;
+  const userRole = localStorage.getItem("user1")
+    ? JSON.parse(localStorage.getItem("user1")).role
+    : null;
 
   if (showLoader) return <Loader />;
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="container" style={{ marginTop: "100px" }}>
+    <div className="container" style={{ marginTop: "100px", }}>
       <Style />
       <h2>
-        Auctions added by Auctioneers <span>({filteredAuctions.length})</span>
+        Auctions added by Auctioneer
       </h2>
-      <Button variant="primary" onClick={() => setShowFilterModal(true)} style={{ marginBottom: "20px" }}>
+      {/* <Button variant="primary" onClick={() => setShowFilterModal(true)} style={{ marginBottom: "20px" }}>
         Filter Auctions
-      </Button>
-      <div className="card-grid">
+      </Button> */}
+
+      <div className="card-grid" style={{ marginTop: "140px", }}>
         {filteredAuctions
-          .filter((auction) => calculateTimeLeft(auction.end_time) !== "Auction ended") // Remove ended auctions
+          .filter((auction) => calculateTimeLeft(auction.end_time) !== "Auction ended")
           .map((auction) => (
             <div className="card" key={auction.id} style={cardStyle}>
               <div
@@ -127,18 +135,10 @@ const Vauctions = () => {
               ></div>
               <div className="card-content">
                 <h5>{auction.title}</h5>
-                <p>
-                  <strong>Starting Price:</strong> Rs.{auction.price}
-                </p>
-                <p>
-                  <strong>Start Time:</strong> {new Date(auction.start_time).toLocaleString()}
-                </p>
-                <p>
-                  <strong>End Time:</strong> {new Date(auction.end_time).toLocaleString()}
-                </p>
-                <p className="time-left">
-                  <strong>Time Left:</strong> {calculateTimeLeft(auction.end_time)}
-                </p>
+                <p><strong>Starting Price:</strong> Rs.{auction.price}</p>
+                <p><strong>Start Time:</strong> {new Date(auction.start_time).toLocaleString()}</p>
+                <p><strong>End Time:</strong> {new Date(auction.end_time).toLocaleString()}</p>
+                <p className="time-left"><strong>Time Left:</strong> {calculateTimeLeft(auction.end_time)}</p>
 
                 {userRole === "Bidder" && (
                   <button onClick={() => handleBid(auction)} className="btn btn-primary">
@@ -150,8 +150,6 @@ const Vauctions = () => {
           ))}
       </div>
 
-
-      {/* Filter Modal */}
       <Modal show={showFilterModal} onHide={() => setShowFilterModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Filter Auctions</Modal.Title>
@@ -179,7 +177,7 @@ const Vauctions = () => {
               <Form.Label>Max Price</Form.Label>
               <Form.Control
                 type="number"
-                placeholder="Enter max price"
+                placeholder="Max price"
                 value={filters.price}
                 onChange={(e) => setFilters({ ...filters, price: e.target.value })}
               />
@@ -187,27 +185,21 @@ const Vauctions = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowFilterModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={applyFilters}>
-            Apply Filters
-          </Button>
+          <Button variant="secondary" onClick={() => setShowFilterModal(false)}>Close</Button>
+          <Button variant="primary" onClick={applyFilters}>Apply Filters</Button>
         </Modal.Footer>
       </Modal>
     </div>
   );
 };
 
-// CSS Fixes
 const cardStyle = {
   border: "1px solid #ddd",
   borderRadius: "10px",
-  overflow: "hidden",
-  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
   backgroundColor: "#fff",
   marginBottom: "20px",
-  width: "300px", // Prevents single item from expanding
+  width: "300px",
 };
 
 const cardImageStyle = {
